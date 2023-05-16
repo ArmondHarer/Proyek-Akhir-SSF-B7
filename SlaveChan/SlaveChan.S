@@ -15,8 +15,13 @@
 .org 0x1000
 
 main:
+<<<<<<< HEAD
   SBI DDRD, 3                       ; set bit port C A2 dijadikan sebagai input interrupt button
   SBI PORTD, 3                    
+=======
+  SBI DDRC, 2                       ; set bit port C A2 dijadikan sebagai input interrupt button
+  SBI PORTC, 2                    
+>>>>>>> 77cbe9798b0682d21ef8d497f81e9153206fe4b0
   LDI R30, 0xC0                     ;set bit to ADMUX for pick A0 for the first input
 
   LDI R16, (1 << ISC11)             ; Configure ISC11 to trigger on falling edge
@@ -75,6 +80,7 @@ wait_ADC:
   RCALL I2C_write                 ;write data byte (Write kedua untuk mengirim data)
   RCALL I2C_stop                  ;transmit STOP condition
 
+<<<<<<< HEAD
 ;Pengiriman Indikator-----------------------------------------
 RCALL I2C_start                 ;transmit START condition
   LDI R27, 0b10010000             ;SLA(1001000) + W(0) ini adalah alamat dari slave
@@ -85,6 +91,10 @@ RCALL I2C_start                 ;transmit START condition
 
   RCALL delay_sec                 ;Memberikan delay ke pengiriman berikutnya
   OUT PORTB, R18
+=======
+
+  RCALL delay_sec                 ;Memberikan delay ke pengiriman berikutnya
+>>>>>>> 77cbe9798b0682d21ef8d497f81e9153206fe4b0
   RJMP pick_ADC
 
 ;<><><><>><><><><><><><><><><><><><>><><><><><><><><><><><><><>><><><><><><><><><><><><><>><><><><><><><><><>
@@ -121,6 +131,10 @@ I2C_stop:
 
 ;$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 ;$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+<<<<<<< HEAD
+=======
+
+>>>>>>> 77cbe9798b0682d21ef8d497f81e9153206fe4b0
 delay_sec: ; 250 ms delay
        LDI R22, 255
 Tick1: LDI R23, 255
