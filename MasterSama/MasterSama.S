@@ -14,19 +14,14 @@ main:
 ;HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 ;HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 
-<<<<<<< HEAD
 anchor:
   LDI R16, 2
-
-=======
->>>>>>> 77cbe9798b0682d21ef8d497f81e9153206fe4b0
 agn:
   RCALL I2C_init                ;initialize TWI module
   RCALL I2C_listen              ;listen to bus to be addressed
   RCALL I2C_read                ;read data byte
 
 ; hasil bacaan pengiriman I2C disimpan di R27
-<<<<<<< HEAD
   ;XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   ;Line pengaturan servo
 
@@ -42,9 +37,9 @@ l1: MOV   R24, R27                    ;Z+ load rotation pos
 rotate_servo:
     LDI   R20, 10         ;count to give enough cycles of PWM
 l2: 
-    SBI   PORTB, 4
+    SBI   PORTD, 4
     RCALL delay_timer0
-    CBI   PORTB, 4        ;send msec pulse to rotate servo
+    CBI   PORTD, 4        ;send msec pulse to rotate servo
     RCALL delay_20ms      ;wait 20ms before re-sending pulse
     DEC   R20
     BRNE  l2              ;go back & repeat PWM signal
@@ -53,11 +48,9 @@ l2:
     BRNE agn
     RCALL indikator
     RJMP anchor                      ; go back & listen to bus
-=======
 
   RCALL delay_sec
   RJMP agn                      ; go back & listen to bus
->>>>>>> 77cbe9798b0682d21ef8d497f81e9153206fe4b0
 ;<><><><>><><><><><><><><><><><><><>><><><><><><><><><><><><><>><><><><><><><><><><><><><>><><><><><><><><><>
 ;<><><><>><><><><><><><><><><><><><>><><><><><><><><><><><><><>><><><><><><><><><><><><><>><><><><><><><><><>
 
@@ -93,7 +86,6 @@ wt:
 ;$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 ;$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
-<<<<<<< HEAD
 ;---------------------------------------------------------------
 ;rotate_pos:
 ;.byte 40,70,90,110,180,110,90,70
@@ -127,8 +119,6 @@ l3: IN    R25, TIFR0      ;get TIFR0 byte & check
     RET
 
 
-=======
->>>>>>> 77cbe9798b0682d21ef8d497f81e9153206fe4b0
 delay_sec: ; 0,25 s delay
     LDI R22, 255
 Tick1: LDI R23, 255
@@ -153,7 +143,6 @@ Del3: DEC   R23
     BRNE  Del2
     DEC   R21
     BRNE  Del1
-<<<<<<< HEAD
     RET
 
 indikator:
@@ -162,6 +151,3 @@ indikator:
   RCALL I2C_read                ;read data byte
   OUT PORTB, R27
   RET
-=======
-    RET
->>>>>>> 77cbe9798b0682d21ef8d497f81e9153206fe4b0
