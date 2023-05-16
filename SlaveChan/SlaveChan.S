@@ -1,30 +1,37 @@
-;============================================
+;===============================================================================================
 ; Slave Tx
-;============================================
+;===============================================================================================
+
 #define __SFR_OFFSET 0
 #include "avr/io.h"
+
 .global main
 .org 0x0000
   rjmp main
+
 .org 0x0004
   jmp interupsi
+
 .org 0x1000
 
 main:
-  LDI R30, 0x00                     ; memasukkan nilai 0 ke register 30
-  LDI R31, 0x00                     ; memasukkan nilai pembanding ke R31
-  SBI DDRC, 2                       ; set bit port C A2 dijadikan sebagai input interrupt button
-  SBI PORTC, 2                    
-  
-  LDI R16, (1 << ISC11); Configure ISC11 to trigger on falling edge
-  STS EICRA, R16
-  LDI R16, (1 << INT1) ; Enable INT1
-  STS EIMSK, R16
-  SEI; Enable global interrupts
+  SBI DDRD, 3                       ; set bit port C A2 dijadikan sebagai input interrupt button
+  SBI PORTD, 3                    
+  LDI R30, 0xC0                     ;set bit to ADMUX for pick A0 for the first input
 
+  LDI R16, (1 << ISC11)             ; Configure ISC11 to trigger on falling edge
+  STS EICRA, R16
+  LDI R16, (1 << INT1)              ; Enable INT1
+  STS EIMSK, R16
+  SEI                               ; Enable global interrupts
+  
+;\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+;/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+
+pick_ADC:
+  STS ADMUX, R30                  ;internal 2.56V, right-justified data, ADC0 <==> ADC1
+  
 setup_ADC:
-  LDI R20, 0xC0                   ;internal 2.56V, right-justified data, ADC0
-  STS ADMUX, R20
   LDI R20, 0x87                   ;enable ADC, ADC prescaler CLK/128
   STS ADCSRA, R20
 
@@ -35,12 +42,6 @@ I2C_init:
   STS TWBR, R21                   ;SCK freq = 400kHz
   LDI R21, (1<<TWEN)
   STS TWCR, R21                   ;enable TWI
-
-Pick_Manual:
-  SBI DDRC, 0                     ; set bit port C A0 dijadikan sebagai input dari potensiometer
-
-Pick_Auto:
-  SBI DDRC, 1                     ; set bit port C A1 dijadikan sebagai input dari photoresistor
 
 read_ADC:
   LDI R20, 0xC7                   ;set ADSC in ADCSRA to start conversion
@@ -74,8 +75,20 @@ wait_ADC:
   RCALL I2C_write                 ;write data byte (Write kedua untuk mengirim data)
   RCALL I2C_stop                  ;transmit STOP condition
 
+;Pengiriman Indikator-----------------------------------------
+RCALL I2C_start                 ;transmit START condition
+  LDI R27, 0b10010000             ;SLA(1001000) + W(0) ini adalah alamat dari slave
+  RCALL I2C_write                 ;write slave address SLA+W (Write pertama untuk identifikasi slave)
+  MOV R27, R30                    ;data byte to be transmitted, yaitu ADCL
+  RCALL I2C_write                 ;write data byte (Write kedua untuk mengirim data)
+  RCALL I2C_stop                  ;transmit STOP condition
+
   RCALL delay_sec                 ;Memberikan delay ke pengiriman berikutnya
-  RJMP read_ADC
+  OUT PORTB, R18
+  RJMP pick_ADC
+
+;<><><><>><><><><><><><><><><><><><>><><><><><><><><><><><><><>><><><><><><><><><><><><><>><><><><><><><><><>
+;<><><><>><><><><><><><><><><><><><>><><><><><><><><><><><><><>><><><><><><><><><><><><><>><><><><><><><><><>
 
 I2C_start:
   LDI R21, (1<<TWINT)|(1<<TWSTA)|(1<<TWEN)
@@ -105,6 +118,9 @@ I2C_stop:
   STS TWCR, R21 ;transmit STOP condition
   RET
 
+
+;$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+;$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 delay_sec: ; 250 ms delay
        LDI R22, 255
 Tick1: LDI R23, 255
@@ -117,7 +133,10 @@ Tick3: DEC R24
     BRNE Tick1
     RET
 
+;TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+;TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+
 interupsi:              ; ini adalah subrutin yang dilakukan untuk mengaktifkan interrupt
-  COM R30               ; Complement nilai yang terdapat di R30
-  SBI EIFR, INTF1       ;Clear INT1 Flag
-  RETI                  ;Return dari interrupt
+  EOR R30, 1            ; Complement nilai ADMUX dari A0 <==> A1
+  SBI EIFR, INTF1       ; Clear INT1 Flag
+  RETI                  ; Return dari interrupt
