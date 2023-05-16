@@ -38,9 +38,9 @@ l1: MOV   R24, R27                    ;Z+ load rotation pos
 rotate_servo:
     LDI   R20, 10         ;count to give enough cycles of PWM
 l2: 
-    SBI   PORTB, 4
+    SBI   PORTD, 4
     RCALL delay_timer0
-    CBI   PORTB, 4        ;send msec pulse to rotate servo
+    CBI   PORTD, 4        ;send msec pulse to rotate servo
     RCALL delay_20ms      ;wait 20ms before re-sending pulse
     DEC   R20
     BRNE  l2              ;go back & repeat PWM signal
